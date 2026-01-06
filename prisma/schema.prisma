@@ -1,0 +1,35 @@
+// Prisma schema for Neon user_logins table
+// Save as schema.prisma in your project
+
+generator client {
+  provider = "prisma-client-js"
+}
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Model for tracking user logins
+model UserLogin {
+  id         Int      @id @default(autoincrement())
+  email      String   @unique
+  login_time DateTime @default(now())
+  @@map("user_logins")
+}
+
+// Model for tracking study sessions
+model StudySession {
+  id              Int      @id @default(autoincrement())
+  userId          Int?     @map("user_id")
+  startTime       DateTime @map("start_time")
+  endTime         DateTime @map("end_time")
+  durationMinutes Int      @map("duration_minutes")
+  @@map("study_sessions")
+}
+
+// Model for storing home screen text
+model HomeScreenText {
+  id    Int    @id @default(autoincrement())
+  text  String
+  updatedAt DateTime @updatedAt
+}

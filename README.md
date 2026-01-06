@@ -1,36 +1,68 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# StudyFlow
 
-## Getting Started
+## Project Overview
+StudyFlow is a productivity app designed to help students improve focus, organization, and time management. It provides tools like a focus timer, task management, and AI-powered research assistance to enhance study efficiency.
 
-First, run the development server:
+## Problem Summary
+Students often struggle with managing their time effectively, staying focused, and organizing their study materials. StudyFlow addresses these challenges by offering a centralized platform with tools tailored to student needs.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Features
+- **Focus Timer**: Implements the Pomodoro technique to help students study in focused intervals.
+- **Task Management**: Organize assignments and track deadlines.
+- **Progress Tracking**: Visualize study patterns and time spent on each subject.
+- **AI Integration**: 
+  - Summarizes uploaded documents and images.
+  - Provides explanations and answers questions about study materials.
+- **User Authentication**: Secure login and signup functionality.
+- **File Uploads**: Upload study materials for AI analysis.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Tech Stack
+- **Framework**: Next.js 16 (App Router, Server Actions)
+- **Frontend**: React 19
+- **Styling**: Tailwind CSS
+- **AI Integration**: OpenAI API for research assistance
+- **Database**: Prisma with PostgreSQL
+- **Other Tools**: ESLint, Prettier, and PostCSS
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## How to Run the Project
+1. Clone the repository:
+   ```bash
+   git clone <repository-url>
+   ```
+2. Navigate to the project directory:
+   ```bash
+   cd study
+   ```
+3. Install dependencies:
+   ```bash
+   npm install
+   ```
+4. Set up environment variables in a `.env` file:
+   ```env
+   DATABASE_URL=<your-database-url>
+   OPENAI_API_KEY=<your-openai-api-key>
+   JWT_SECRET=<your-jwt-secret>
+   ```
+5. Run the development server:
+   ```bash
+   npm run dev
+   ```
+6. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Reflection
+### What Worked
+- The integration of the AI assistant significantly enhanced the app's functionality, providing students with quick and accurate study assistance.
+- The focus timer and task management features were well-received during testing, helping users stay organized and productive.
 
-## Learn More
+### What Didn’t Work
+- Initial build errors and missing imports caused delays during development.
+- The analytics feature was removed due to limited use and complexity.
 
-To learn more about Next.js, take a look at the following resources:
+### What We’d Improve
+- Enhance the AI assistant to support more file formats and provide deeper insights.
+- Improve the UI/UX for better accessibility and user engagement.
+- Add more customization options for the focus timer and task management tools.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+For more details, see the code in `app/page.tsx` and other app directories.
