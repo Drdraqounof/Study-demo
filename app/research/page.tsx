@@ -1,8 +1,7 @@
 "use client";
 import Sidebar from "../../components/Sidebar";
 import { useState } from "react";
-import { Upload, FileText, Loader2, AlertCircle, CheckCircle2, X, MessageSquare, FileSearch, Send } from "lucide-react";
-
+import { Upload, FileText, Loader2, AlertCircle, CheckCircle2, X } from "lucide-react";
 interface UploadedFile {
   file: File;
   id: string;
@@ -17,7 +16,7 @@ interface Message {
 type Mode = "analyze" | "converse";
 
 export default function ResearchPage() {
-  const [mode, setMode] = useState<Mode>("analyze");
+  // Remove mode state and all references to Converse Mode
   const [files, setFiles] = useState<UploadedFile[]>([]);
   const [uploading, setUploading] = useState(false);
   const [response, setResponse] = useState<string>("");
@@ -51,12 +50,13 @@ export default function ResearchPage() {
     setUploading(true);
     setResponse("");
     setError("");
+    setMessages([]);
 
     try {
       const formData = new FormData();
-      files.forEach(({ file }) => {
-        formData.append("files", file);
-      });
+      if (files.length > 0) {
+        formData.append("file", files[0].file);
+      }
       if (question.trim()) {
         formData.append("question", question);
       }
@@ -71,7 +71,22 @@ export default function ResearchPage() {
       }
 
       const data = await res.json();
-      setResponse(data.result || "Analysis complete");
+      // Use the first file's result for display (single file upload UI)
+      const aiResult = Array.isArray(data.results) && data.results.length > 0 ? data.results[0].result : (data.result || "Analysis complete");
+      setResponse(aiResult);
+      // Add AI analysis to chat history
+      setMessages([
+        {
+          role: "user",
+          content: question ? question : "File uploaded for analysis.",
+          timestamp: new Date(),
+        },
+        {
+          role: "assistant",
+          content: aiResult,
+          timestamp: new Date(),
+        },
+      ]);
       setFiles([]);
       setQuestion("");
     } catch (err) {
@@ -149,39 +164,14 @@ export default function ResearchPage() {
       <main className="flex-1 p-8 max-w-5xl mx-auto">
         <div className="mb-8">
           <h2 className="text-3xl font-bold text-gray-900 mb-2">AI Research Assistant</h2>
-          <p className="text-gray-600">Upload documents and choose your interaction mode</p>
+          <p className="text-gray-600">Upload documents for AI analysis. <span className='font-semibold text-red-500'>Only text-based files (PDF, DOCX, TXT) are supported. Image analysis is not available.</span></p>
         </div>
 
-        {/* Mode Selector */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-2 mb-6 inline-flex gap-2">
-          <button
-            onClick={() => setMode("analyze")}
-            className={`flex items-center gap-2 px-6 py-3 rounded-md font-medium transition-colors ${
-              mode === "analyze"
-                ? "bg-indigo-600 text-white"
-                : "text-gray-600 hover:bg-gray-100"
-            }`}
-          >
-            <FileSearch className="w-5 h-5" />
-            Analyze Mode
-          </button>
-          <button
-            onClick={() => setMode("converse")}
-            className={`flex items-center gap-2 px-6 py-3 rounded-md font-medium transition-colors ${
-              mode === "converse"
-                ? "bg-indigo-600 text-white"
-                : "text-gray-600 hover:bg-gray-100"
-            }`}
-          >
-            <MessageSquare className="w-5 h-5" />
-            Converse Mode
-          </button>
-        </div>
-
+      export default ResearchPage;
         {/* File Upload Section (both modes) */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            {mode === "analyze" ? "Upload Documents for Analysis" : "Upload Context Documents (Optional)"}
+            Upload Documents for Analysis
           </h3>
           <div className="mb-4">
             <label
@@ -237,11 +227,9 @@ export default function ResearchPage() {
           )}
         </div>
 
-        {/* Analyze Mode */}
-        {mode === "analyze" && (
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+        {/* Analyze Mode (only mode) */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Analysis Settings</h3>
-            
             <div className="mb-4">
               <label htmlFor="question" className="block text-sm font-medium text-gray-700 mb-2">
                 Ask a specific question (optional)
@@ -255,6 +243,37 @@ export default function ResearchPage() {
                 rows={3}
               />
             </div>
+
+            {/* AI Dialogue (same style as Converse Mode) */}
+            {messages.length > 0 && (
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 flex flex-col mb-6" style={{ minHeight: "200px" }}>
+                <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                  {messages.map((message, index) => (
+                    <div
+                      key={index}
+                      className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
+                    >
+                      <div
+                        className={`max-w-[80%] rounded-lg px-4 py-3 ${
+                          message.role === "user"
+                            ? "bg-indigo-600 text-white"
+                            : "bg-gray-100 text-gray-900"
+                        }`}
+                      >
+                        <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                        <p
+                          className={`text-xs mt-1 ${
+                            message.role === "user" ? "text-indigo-200" : "text-gray-500"
+                          }`}
+                        >
+                          {formatTime(message.timestamp)}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {error && (
               <div className="mb-4 flex items-center gap-2 text-red-600 bg-red-50 p-3 rounded-lg">
@@ -293,89 +312,12 @@ export default function ResearchPage() {
               </div>
             )}
           </div>
-        )}
-
-        {/* Converse Mode */}
-        {mode === "converse" && (
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 flex flex-col" style={{ height: "600px" }}>
-            {/* Chat Messages */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-4">
-              {messages.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full text-center">
-                  <MessageSquare className="w-16 h-16 text-gray-300 mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Start a Conversation</h3>
-                  <p className="text-gray-500 max-w-md">
-                    Ask questions about your documents or have a general discussion with the AI assistant.
-                  </p>
-                </div>
-              ) : (
-                messages.map((message, index) => (
-                  <div
-                    key={index}
-                    className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
-                  >
-                    <div
-                      className={`max-w-[80%] rounded-lg px-4 py-3 ${
-                        message.role === "user"
-                          ? "bg-indigo-600 text-white"
-                          : "bg-gray-100 text-gray-900"
-                      }`}
-                    >
-                      <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                      <p
-                        className={`text-xs mt-1 ${
-                          message.role === "user" ? "text-indigo-200" : "text-gray-500"
-                        }`}
-                      >
-                        {formatTime(message.timestamp)}
-                      </p>
-                    </div>
-                  </div>
-                ))
-              )}
-              {sending && (
-                <div className="flex justify-start">
-                  <div className="bg-gray-100 rounded-lg px-4 py-3">
-                    <Loader2 className="w-5 h-5 text-gray-500 animate-spin" />
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Error Message */}
-            {error && (
-              <div className="px-6 py-3 bg-red-50 border-t border-red-200">
-                <div className="flex items-center gap-2 text-red-600">
-                  <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                  <p className="text-sm">{error}</p>
-                </div>
-              </div>
-            )}
-
-            {/* Input Area */}
-            <div className="border-t border-gray-200 p-4">
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={conversationInput}
-                  onChange={(e) => setConversationInput(e.target.value)}
-                  onKeyPress={(e) => e.key === "Enter" && !e.shiftKey && handleSendMessage()}
-                  placeholder="Type your message..."
-                  className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                  disabled={sending}
-                />
-                <button
-                  onClick={handleSendMessage}
-                  disabled={!conversationInput.trim() || sending}
-                  className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
-                >
-                  <Send className="w-5 h-5" />
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-      </main>
-    </div>
-  );
+        </main>
+      </div>
+    );
 }
+
+
+
+
+

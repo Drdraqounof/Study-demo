@@ -32,28 +32,31 @@ Your tone should be encouraging and easy to understand.`
 export async function analyzeFile(file) {
   // Read file as base64 or text
   const buffer = await file.arrayBuffer();
-  const base64 = Buffer.from(buffer).toString("base64");
-
-  // Example: send to OpenAI Vision (GPT-4V) or document model
-  // This is a placeholder; you may need to use a specific endpoint for images/docs
+  // Check file type
+  if (file.type.startsWith('image/')) {
+    return "Image analysis is not available. Your OpenAI API key does not have access to vision models.";
+  }
+  // For text files, analyze with a text model
+  let text = "";
+  try {
+    text = new TextDecoder().decode(buffer);
+  } catch {
+    text = "Unable to read file as text.";
+  }
   const response = await openai.chat.completions.create({
-    model: "gpt-4-vision-preview",
+    model: "gpt-4",
     messages: [
       {
         role: "system",
-        content: "You are a helpful study assistant. Provide clear, concise, and student-friendly explanations and summaries.",
+        content: "You are a helpful study assistant. Your job is to read the provided document and give a clear, concise summary of its main points, findings, and what the document is about. If the document is not readable, say so.",
       },
       {
         role: "user",
-        content: [
-          { type: "text", text: "Analyze this file and summarize its contents." },
-          { type: "image_url", image_url: { url: `data:${file.type};base64,${base64}` } },
-        ],
+        content: `Please analyze and summarize the following document. What is it about? What are the main findings or topics?\n\n${text}`,
       },
     ],
     max_tokens: 500,
   });
-
   return response.choices[0]?.message?.content || "No AI response.";
 }
 

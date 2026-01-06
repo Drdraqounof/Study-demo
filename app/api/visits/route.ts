@@ -35,5 +35,6 @@ export async function GET() {
 }
 
 export async function POST() {
-  // ...existing POST logic if any...
+  // Not implemented, but must return a response
+  return NextResponse.json({ error: 'Not implemented' }, { status: 501 });
 }
